@@ -33,7 +33,7 @@ def upload_photo(file_url_or_path: str, is_local: bool = True) -> str:
     except Exception as e:
         raise Exception(f"Upload photo failed: {str(e)}")
 
-def publish_carousel(media_ids: list, message: str) -> str:
+def publish_carousel(media_ids: list, message: str, scheduled_publish_time: int = None) -> str:
     """
     Publishes a post (carousel/album) using the attached media_ids and message.
     Returns the Post ID on success, or None on failure.
@@ -44,6 +44,10 @@ def publish_carousel(media_ids: list, message: str) -> str:
         "access_token": config.FACEBOOK_PAGE_ACCESS_TOKEN,
         "message": message
     }
+    
+    if scheduled_publish_time:
+        payload["published"] = "false"
+        payload["scheduled_publish_time"] = scheduled_publish_time
     
     # Attach each uploaded photo to this new multi-photo post structure
     for idx, mid in enumerate(media_ids):
@@ -61,7 +65,7 @@ def publish_carousel(media_ids: list, message: str) -> str:
     except Exception as e:
         raise Exception(f"Publish carousel failed: {str(e)}")
 
-def publish_text_only(message: str) -> str:
+def publish_text_only(message: str, scheduled_publish_time: int = None) -> str:
     """
     Posts a raw text status to the Facebook Page.
     Returns the Post ID on success, or None on failure.
@@ -72,6 +76,10 @@ def publish_text_only(message: str) -> str:
         "access_token": config.FACEBOOK_PAGE_ACCESS_TOKEN,
         "message": message
     }
+    
+    if scheduled_publish_time:
+        payload["published"] = "false"
+        payload["scheduled_publish_time"] = scheduled_publish_time
     
     try:
         response = requests.post(url, data=payload)
@@ -84,7 +92,7 @@ def publish_text_only(message: str) -> str:
     except Exception as e:
         raise Exception(f"Publish text failed: {str(e)}")
 
-def upload_video(file_path: str, message: str) -> str:
+def upload_video(file_path: str, message: str, scheduled_publish_time: int = None) -> str:
     """
     Uploads a video directly to the Facebook Page with the final caption.
     Returns the Post ID (video ID) on success, or None on failure.
@@ -95,6 +103,10 @@ def upload_video(file_path: str, message: str) -> str:
         "access_token": config.FACEBOOK_PAGE_ACCESS_TOKEN,
         "description": message
     }
+    
+    if scheduled_publish_time:
+        payload["published"] = "false"
+        payload["scheduled_publish_time"] = scheduled_publish_time
     
     try:
         with open(file_path, 'rb') as f:
