@@ -69,31 +69,37 @@ This guide walks you through acquiring the necessary API keys, testing the bot o
 
 ---
 
-## ☁️ Phase 3: Deploying to Render.com (Free 24/7 Hosting)
+## ☁️ Phase 3: Deploying to Render.com (The 100% Free Web Service Trick)
 
-We have pushed your code to GitHub to fix the "Telegram Conflict" (which happens when you run the bot twice on your local machine). 
-
-By hosting it on Render using your GitHub repo, it will run permanently and safely in the background.
+Since Render killed their free "Background Worker" tier, we use a clever workaround! I have included a tiny hidden web server (`keep_alive.py`) inside your bot. This tricks Render into hosting it for free as a **Web Service**.
 
 1. Go to [Render.com](https://render.com/) and create a free account.
-2. Click **New +** at the top right, and select **Background Worker**.
-3. Connect your GitHub account if prompted.
-4. Search for your repository: `sibby-killer/memes_mwitu_bot_fb` and select it.
-5. In the settings page:
+2. Click **New +** at the top right, and select **Web Service**.
+3. Connect your GitHub account and select your repository: `sibby-killer/memes_mwitu_bot_fb`.
+4. In the settings page:
    - **Name**: `Meme Mwitu Bot`
    - **Environment**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `python bot.py`
+   - **Start Command**: `gunicorn keep_alive:app --bind 0.0.0.0:$PORT & python bot.py`
    - **Instance Type**: Leave on `Free`.
-6. **Adding Environment Variables (CRITICAL):**
+5. **Adding Environment Variables (CRITICAL):**
    - Scroll down to the **Environment** section.
    - Click **Add Environment Variable** and copy over all the keys from your `.env` file one by one:
      - Key: `TELEGRAM_BOT_TOKEN`, Value: `(your token)`
      - Key: `GROQ_API_KEY`, Value: `(your key)`
      - Key: `FACEBOOK_PAGE_ID`, Value: `958540217347416`
      - Key: `FACEBOOK_PAGE_ACCESS_TOKEN`, Value: `(your never expiring token)`
-7. Click **Create Background Worker**.
+6. Click **Create Web Service**.
 
-Render will now download your code from GitHub, install the requirements, and start your bot permanently in the cloud!
+### ⏰ Step 3b: Keeping it awake forever
+Render's free Web Services go to sleep after 15 minutes of inactivity. To keep your bot awake 24/7 forever:
+1. Once your Render Web Service deploys, copy its public URL (it looks like `https://meme-mwitu-bot.onrender.com`).
+2. Go to [UptimeRobot](https://uptimerobot.com/) and create a free account.
+3. Click **Add New Monitor**.
+   - **Monitor Type**: HTTP(s)
+   - **Friendly Name**: Meme Bot Keep Alive
+   - **URL**: Paste that Render URL you just copied.
+   - **Monitoring Interval**: 5 minutes.
+4. Click **Create Monitor**. 
 
-*Note: Whenever you make a change to the code locally and push it to GitHub, Render will automatically detect it, turn off the old bot, and start the new one!*
+UptimeRobot will ping your hidden web server every 5 minutes, ensuring your Telegram Bot never goes to sleep!

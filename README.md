@@ -13,33 +13,34 @@ An automated Telegram-to-Facebook bot designed to streamline meme posting, gener
 
 ---
 
-## 🚀 Deployment to Render.com (Free Tier)
+## 🚀 Deployment to Render.com (100% Free Web Service Trick)
 
-This bot is designed to run 24/7 in the cloud. We strongly recommend deploying to **Render.com** using their free **Background Worker** service.
-
-### ⚠️ IMPORTANT: Choosing the Right Render Service
-Do **NOT** choose "Web Service". A Web Service expects a web server (like Flask or Gunicorn) and will fail to deploy this bot.
-
-You **MUST** select **Background Worker**. A Background Worker simply runs a python script continuously, which is exactly how a Telegram polling bot works.
+This bot is designed to run 24/7 in the cloud. Because Render removed their free "Background Worker" tier, we use a built-in Flask web server (`keep_alive.py`) to trick Render into hosting the bot for free as a **Web Service**, and we use UptimeRobot to keep it awake forever!
 
 ### Step-by-step Render Setup:
 1. Log into your [Render Console](https://dashboard.render.com).
-2. Click **New +** at the top right, and select **Background Worker**.
+2. Click **New +** at the top right, and select **Web Service**.
 3. Connect your GitHub account and select this repository (`sibby-killer/memes_mwitu_bot_fb`).
-4. Configure the Background Worker exactly like this:
+4. Configure the Web Service exactly like this:
    - **Name**: `Meme Mwitu Bot`
    - **Environment**: `Python 3`
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `python bot.py` (Do *not* use gunicorn)
+   - **Start Command**: `gunicorn keep_alive:app --bind 0.0.0.0:$PORT & python bot.py`
    - **Instance Type**: `Free`
 5. Scroll down to **Environment** and click **Add Environment Variable**. Add your 4 secret keys:
    - `TELEGRAM_BOT_TOKEN`: (Your Token from BotFather)
    - `GROQ_API_KEY`: (Your Token from Groq)
    - `FACEBOOK_PAGE_ID`: `958540217347416`
    - `FACEBOOK_PAGE_ACCESS_TOKEN`: (Your Never-Expiring Page Token)
-6. Click **Create Background Worker**.
+6. Click **Create Web Service**.
 
-*Render will build the project and turn the bot on permanently.*
+*The bot will immediately come online!*
+
+### ⏰ Keeping it awake forever (Preventing 15-min sleep)
+1. Copy the URL Render gives your new Web Service (e.g. `https://meme-mwitu-bot.onrender.com`).
+2. Go to [UptimeRobot.com](https://uptimerobot.com) and create a free account.
+3. Add a new **HTTP(s) Monitor**, paste your Render URL, and select a **5 minute interval**.
+4. Save it! UptimeRobot will now ping your bot's hidden web server every 5 minutes, ensuring it NEVER goes to sleep.
 
 ---
 

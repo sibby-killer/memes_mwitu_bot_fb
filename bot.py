@@ -15,6 +15,7 @@ from telegram.ext import (
 import config
 import groq_client
 import facebook_client
+from keep_alive import keep_alive
 
 # Define States for ConversationHandler
 AWAITING_CAPTION = 1
@@ -250,6 +251,9 @@ def main():
     if not config.TELEGRAM_BOT_TOKEN:
         print("ERROR: TELEGRAM_BOT_TOKEN is missing in .env")
         return
+
+    # Start the background flask web server to keep Render happy
+    keep_alive()
 
     application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
 
