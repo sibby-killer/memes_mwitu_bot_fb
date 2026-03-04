@@ -69,29 +69,31 @@ This guide walks you through acquiring the necessary API keys, testing the bot o
 
 ---
 
-## ☁️ Phase 3: Deploying to PythonAnywhere (Free 24/7 Hosting)
+## ☁️ Phase 3: Deploying to Render.com (Free 24/7 Hosting)
 
-Once it works locally on your machine, we can move it to the cloud so it runs 24/7 without your computer needing to be on.
+We have pushed your code to GitHub to fix the "Telegram Conflict" (which happens when you run the bot twice on your local machine). 
 
-1. Create a free account at [PythonAnywhere.com](https://www.pythonanywhere.com/).
-2. Once logged in, go to the **Files** tab.
-3. Create a new folder named `meme_bot`.
-4. Upload the following files into this folder:
-   - `bot.py`
-   - `config.py`
-   - `facebook_client.py`
-   - `groq_client.py`
-   - `requirements.txt`
-   - Your secret `.env` file.
-5. Go to the **Consoles** tab and click **Bash** to open a cloud terminal.
-6. Install dependencies in your cloud environment:
-   ```bash
-   pip3.10 install --user -r ~/meme_bot/requirements.txt
-   ```
-7. Go to the **Tasks** tab (also called "Always-on tasks", but free accounts don't have this. Instead, we use Scheduled Tasks or keep a console alive).
-8. **Alternative Free Method (Since standard PythonAnywhere "Always-On" costs $5/mo):**
-   - Open a **Bash Console** in PythonAnywhere.
-   - Run: `cd ~/meme_bot`
-   - Run: `python3.10 bot.py`
-   - The bot will stay alive as long as PythonAnywhere doesn't reboot the server. If it stops, you'll just need to log in and restart that command. 
-   *(If you want true "set-it-and-forget-it" free hosting, you may want to look into **Render.com** Background Workers instead).*
+By hosting it on Render using your GitHub repo, it will run permanently and safely in the background.
+
+1. Go to [Render.com](https://render.com/) and create a free account.
+2. Click **New +** at the top right, and select **Background Worker**.
+3. Connect your GitHub account if prompted.
+4. Search for your repository: `sibby-killer/memes_mwitu_bot_fb` and select it.
+5. In the settings page:
+   - **Name**: `Meme Mwitu Bot`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `python bot.py`
+   - **Instance Type**: Leave on `Free`.
+6. **Adding Environment Variables (CRITICAL):**
+   - Scroll down to the **Environment** section.
+   - Click **Add Environment Variable** and copy over all the keys from your `.env` file one by one:
+     - Key: `TELEGRAM_BOT_TOKEN`, Value: `(your token)`
+     - Key: `GROQ_API_KEY`, Value: `(your key)`
+     - Key: `FACEBOOK_PAGE_ID`, Value: `958540217347416`
+     - Key: `FACEBOOK_PAGE_ACCESS_TOKEN`, Value: `(your never expiring token)`
+7. Click **Create Background Worker**.
+
+Render will now download your code from GitHub, install the requirements, and start your bot permanently in the cloud!
+
+*Note: Whenever you make a change to the code locally and push it to GitHub, Render will automatically detect it, turn off the old bot, and start the new one!*
