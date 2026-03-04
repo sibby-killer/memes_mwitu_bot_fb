@@ -54,13 +54,12 @@ async def handle_text_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     vibe = groq_client.enhance_vibe(content)
     final_caption = f"{content}\n\n{vibe['hashtags']}"
     
-    post_id = facebook_client.publish_text_only(final_caption)
-    
-    if post_id:
+    try:
+        post_id = facebook_client.publish_text_only(final_caption)
         facebook_client.post_comment(post_id, vibe['cta'])
         await context.bot.edit_message_text(f"✅ Successfully posted to Facebook!\n\n**Comment added**: {vibe['cta']}", chat_id=update.effective_chat.id, message_id=msg.message_id)
-    else:
-        await context.bot.edit_message_text("❌ Failed to post to Facebook. Check console logs.", chat_id=update.effective_chat.id, message_id=msg.message_id)
+    except Exception as e:
+        await context.bot.edit_message_text(f"❌ {str(e)}", chat_id=update.effective_chat.id, message_id=msg.message_id)
 
 async def handle_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -178,14 +177,13 @@ async def process_upload(user_id: int, bot, chat_id: int):
     # Check if there's only 1 file and it's a video
     if len(files) == 1 and files[0].endswith(".mp4"):
         await edit_progress(bot, chat_id, msg_id, f"⏳ Step 2/3: Uploading Video direct to Facebook...")
-        post_id = facebook_client.upload_video(files[0], final_caption)
-        
-        if post_id:
+        try:
+            post_id = facebook_client.upload_video(files[0], final_caption)
             await edit_progress(bot, chat_id, msg_id, f"⏳ Step 3/3: Posting CTA Comment...")
             facebook_client.post_comment(post_id, vibe['cta'])
             await edit_progress(bot, chat_id, msg_id, f"✅ Successfully posted the Video!\n\n**Comment added**: {vibe['cta']}")
-        else:
-            await edit_progress(bot, chat_id, msg_id, "❌ Failed to upload Video to Facebook.")
+        except Exception as e:
+            await edit_progress(bot, chat_id, msg_id, f"❌ {str(e)}")
             
         cleanup_temp_files(user_id)
         return
@@ -199,9 +197,13 @@ async def process_upload(user_id: int, bot, chat_id: int):
             continue 
             
         await edit_progress(bot, chat_id, msg_id, f"⏳ Step 2/3: Uploading photo {idx+1} of {len(files)} to Facebook servers...")
-        mid = facebook_client.upload_photo(path, is_local=True)
-        if mid:
+        try:
+            mid = facebook_client.upload_photo(path, is_local=True)
             media_ids.append(mid)
+        except Exception as e:
+            await edit_progress(bot, chat_id, msg_id, f"❌ {str(e)}")
+            cleanup_temp_files(user_id)
+            return
             
     if not media_ids:
         await edit_progress(bot, chat_id, msg_id, "❌ Failed to upload any images. Did you only send videos in an album? FB requires 1 video per post.")
@@ -210,9 +212,9 @@ async def process_upload(user_id: int, bot, chat_id: int):
         
     # 3. Publish Carousel Post
     await edit_progress(bot, chat_id, msg_id, f"⏳ Step 3/3: Publishing Album/Carousel with {len(media_ids)} images...")
-    post_id = facebook_client.publish_carousel(media_ids, final_caption)
-    
-    if post_id:
+    try:
+        post_id = facebook_client.publish_carousel(media_ids, final_caption)
+        
         # 4. Post CTA Comment
         await edit_progress(bot, chat_id, msg_id, f"⏳ Almost done... Posting CTA comment...")
         facebook_client.post_comment(post_id, vibe['cta'])
@@ -221,8 +223,8 @@ async def process_upload(user_id: int, bot, chat_id: int):
         group_links = "\n\n💡 *Reminder: Share this post to your groups!*"
         
         await edit_progress(bot, chat_id, msg_id, f"✅ Successfully posted {len(media_ids)} images to Facebook!\n\n**Comment**: {vibe['cta']}{group_links}")
-    else:
-        await edit_progress(bot, chat_id, msg_id, "❌ Failed to publish the final Facebook post. Check logs.")
+    except Exception as e:
+        await edit_progress(bot, chat_id, msg_id, f"❌ {str(e)}")
         
     # Cleanup memory and files
     cleanup_temp_files(user_id)

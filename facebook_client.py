@@ -28,11 +28,10 @@ def upload_photo(file_url_or_path: str, is_local: bool = True) -> str:
         if 'id' in result:
             return result['id']
         else:
-            print(f"Failed to upload photo: {result}")
-            return None
+            msg = result.get('error', {}).get('message', str(result))
+            raise Exception(f"Facebook API Error: {msg}")
     except Exception as e:
-        print(f"Exception uploading photo: {e}")
-        return None
+        raise Exception(f"Upload photo failed: {str(e)}")
 
 def publish_carousel(media_ids: list, message: str) -> str:
     """
@@ -57,11 +56,10 @@ def publish_carousel(media_ids: list, message: str) -> str:
         if 'id' in result:
             return result['id']
         else:
-            print(f"Failed to publish carousel: {result}")
-            return None
+            msg = result.get('error', {}).get('message', str(result))
+            raise Exception(f"Facebook API Error: {msg}")
     except Exception as e:
-        print(f"Exception publishing carousel: {e}")
-        return None
+        raise Exception(f"Publish carousel failed: {str(e)}")
 
 def publish_text_only(message: str) -> str:
     """
@@ -81,11 +79,10 @@ def publish_text_only(message: str) -> str:
         if 'id' in result:
             return result['id']
         else:
-            print(f"Failed to publish text post: {result}")
-            return None
+            msg = result.get('error', {}).get('message', str(result))
+            raise Exception(f"Facebook API Error: {msg}")
     except Exception as e:
-        print(f"Exception publishing text post: {e}")
-        return None
+        raise Exception(f"Publish text failed: {str(e)}")
 
 def upload_video(file_path: str, message: str) -> str:
     """
@@ -108,11 +105,10 @@ def upload_video(file_path: str, message: str) -> str:
         if 'id' in result:
             return result['id']
         else:
-            print(f"Failed to upload video: {result}")
-            return None
+            msg = result.get('error', {}).get('message', str(result))
+            raise Exception(f"Facebook API Error: {msg}")
     except Exception as e:
-        print(f"Exception uploading video: {e}")
-        return None
+        raise Exception(f"Upload video failed: {str(e)}")
 
 def post_comment(post_id: str, comment_text: str) -> bool:
     """
